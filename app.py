@@ -49,9 +49,7 @@ def root():
 
 @app.route("/api/pipeline")
 def get_pipelines():
-  pipes = get_pipelines_with_status(
-    filters=["secure", "test"]
-  )
+  pipes = get_pipelines_with_status()
   return success_json_response(
     pipes
   )

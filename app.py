@@ -6,7 +6,10 @@ import secrets
 from flask import Flask, render_template, request, redirect
 from flask_cors import CORS
 from utils import success_json_response
+from security import secured
 from codepipeline import get_pipelines_with_status
+from codebuild import get_build
+from cloudwatchlogs import get_logs
 
 app = Flask(__name__,
             static_url_path="/",
@@ -42,17 +45,38 @@ def gotoindex():
     return redirect("/index.html", code=302)
 
 @app.route("/api")
-def root():
+@secured
+def root(username, groups):
   return success_json_response({
-    "ping": "pong"
+    "ping": "pong",
+    "username": username,
+    "groups": groups
   })
 
 @app.route("/api/pipeline")
-def get_pipelines():
-  pipes = get_pipelines_with_status()
+@secured
+def get_pipelines(username, groups):
+  pipes = get_pipelines_with_status(groups)
   return success_json_response(
     pipes
   )
+
+@app.route("/api/codebuild/<string:id>")
+def get_build_logs(id):
+  cb = get_build(id)
+  if cb:
+    log_group = cb["logs"]["groupName"]
+    log_stream = cb["logs"]["streamName"]
+    logs = get_logs(
+      log_group=log_group,
+      stream_name=log_stream
+    )
+    logs = [l["message"] for l in logs]
+    return success_json_response({
+      "log_group": log_group,
+      "log_stream": log_stream,
+      "events": logs
+    })
 
 if __name__ == "__main__":
     app.run(debug=True, host="0.0.0.0")

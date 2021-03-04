@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import PropTypes from 'prop-types';
 import clsx from 'clsx';
-//import moment from "moment";
+import moment from "moment";
 
 import { useSelector, useDispatch } from 'react-redux';
 
@@ -13,13 +13,14 @@ import {
   setPage,
   setRowsPerPage,
   setOpenForm, 
+  setPipeline, 
   selectPipelines,
   selectOrder,
   selectOrderBy,
   selectSelected,
   selectPage,
   selectRowsPerPage,
-  selectOpenForm
+  selectOpenForm,
 } from './pipelineSlice';
 
 import { selectNav } from '../navigation/navigationSlice';
@@ -44,6 +45,9 @@ import MoreIcon from '@material-ui/icons/More';
 import ErrorOutlineIcon from '@material-ui/icons/ErrorOutline';
 import PlayArrowIcon from '@material-ui/icons/PlayArrow';
 import CheckCircleOutlineIcon from '@material-ui/icons/CheckCircleOutline';
+import { red, green, blue } from '@material-ui/core/colors';
+
+import DetailForm from './DetailForm';
 
 function descendingComparator(a, b, orderBy) {
   if (b[orderBy] < a[orderBy]) {
@@ -72,11 +76,11 @@ function stableSort(array, comparator) {
 }
 
 const headCells = [
-  { id: 'pipeline', numeric: false, disablePadding: true, label: 'Pipeline' },
-  { id: 'stages', numeric: false, disablePadding: true, label: 'Stages' },
-  { id: 'status', numeric: false, disablePadding: false, label: 'Status' },
-  { id: 'last_run', numeric: false, disablePadding: false, label: 'Last Run Date' },
-  { id: 'trigger', numeric: false, disablePadding: false, label: 'Trigger' }
+  { id: 'name', numeric: false, disablePadding: true, label: 'Pipeline' },
+  { id: 'stages', sortDisabled: true, numeric: false, disablePadding: true, label: 'Stages' },
+  { id: 'state', numeric: false, disablePadding: false, label: 'Status' },
+  { id: 'latest_run', numeric: false, disablePadding: false, label: 'Last Run Date' },
+  { id: 'trigger', sortDisabled: true, numeric: false, disablePadding: false, label: 'Trigger' }
 ];
 
 function EnhancedTableHead(props) {
@@ -98,7 +102,9 @@ function EnhancedTableHead(props) {
             padding={headCell.disablePadding ? 'none' : 'default'}
             sortDirection={orderBy === headCell.id ? order : false}
           >
-            <TableSortLabel
+            {headCell.sortDisabled ?
+              <p>{headCell.label}</p>
+            : <TableSortLabel
               active={orderBy === headCell.id}
               direction={orderBy === headCell.id ? order : 'asc'}
               onClick={createSortHandler(headCell.id)}
@@ -110,6 +116,7 @@ function EnhancedTableHead(props) {
                 </span>
               ) : null}
             </TableSortLabel>
+            }
           </TableCell>
         ))}
       </TableRow>
@@ -268,10 +275,35 @@ export default function PipelineTable() {
     return false;
   }
 
+  const getTrigger = stages => {
+    if (stages.length > 0) {
+      const stage1 = stages[0];
+      if(stage1.actions.length > 0) {
+        const action1 = stage1.actions[0];
+        return action1.summary;
+      } else {
+        return "n/a"
+      }
+    } else {
+      return "n/a"
+    }
+  }
+
+  const openDetail = (event) => {
+    var selectedPipeline = rows.filter(r => r.name === selected[0])[0];
+    dispatch(setPipeline(selectedPipeline));
+    dispatch(setOpenForm(true));
+  }
+
+  const closeDetail = (event) => {
+    dispatch(setOpenForm(false));
+  }
+
   return (
     <div className={classes.root}>
       <Paper className={classes.paper}>
-        <EnhancedTableToolbar numSelected={selected.length} onGetInfoClick={() => {}} />
+        <DetailForm open={formOpen} handleClose={closeDetail} />
+        <EnhancedTableToolbar numSelected={selected.length} onGetInfoClick={openDetail} />
         <TableContainer>
           <Table
             className={classes.table}
@@ -316,12 +348,12 @@ export default function PipelineTable() {
                       </TableCell>
                       <TableCell align="left">{row.stages.length}</TableCell>
                       <TableCell align="left">
-                        {row.state == "Failed" && <ErrorOutlineIcon /> }
-                        {row.state == "InProgress" && <PlayArrowIcon />}
-                        {row.state == "Succeeded" && <CheckCircleOutlineIcon />}
+                        {row.state == "Failed" && <ErrorOutlineIcon style={{ color: red[500] }} /> }
+                        {row.state == "InProgress" && <PlayArrowIcon style={{ color: blue[500] }} />}
+                        {row.state == "Succeeded" && <CheckCircleOutlineIcon style={{ color: green[500] }} />}
                       </TableCell>
-                      <TableCell align="left">{row.latest_run}</TableCell>
-                      <TableCell align="left">{0}</TableCell>
+                      <TableCell align="left">{moment.utc(row.latest_run).fromNow()}</TableCell>
+                      <TableCell align="left">{getTrigger(row.stages)}</TableCell>
                     </TableRow>
                   );
                 })}

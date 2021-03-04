@@ -110,7 +110,7 @@ def get_pipeline_state(name):
     name=name
   )
   statejson = json.dumps(state, indent=2, default=str)
-  logging.info(f"State json {statejson}")
+  #logging.info(f"State json {statejson}")
   return collapse_stages(state)
 
 def get_pipelines_with_status(filters = None):
@@ -150,8 +150,8 @@ def get_pipelines_with_status(filters = None):
   # need to get status
   for pipeline in pipelines:
     state = get_pipeline_state(pipeline)
-    statejson = json.dumps(state, indent=2, default=str)
-    logging.info(f"{statejson}")
+    #statejson = json.dumps(state, indent=2, default=str)
+    #logging.info(f"{statejson}")
     ptr = {
       "name": pipeline,
       "state": state["overall_state"],

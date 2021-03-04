@@ -16,18 +16,30 @@ export const fetchAll = createAsyncThunk(
   }
 )
 
+export const getLogs = createAsyncThunk(
+  'pipeline/getLogs',
+  async (item, thunkAPI) => {
+    const response = await axios.get("http://localhost:5000/api/codebuild/" + item);
+    return response.data.events;
+  }
+)
+
 const pipelineSlice = createSlice({
   name: 'pipeline',
   initialState: { 
     pipelines: [], 
+    logs: [],
+    selectedPipeline: {},
     loading: 'idle', 
     error: '',
     order: 'asc',
     orderBy: 'name',
     selected: [],
     page: 0,
-    rowsPerPage: 5,
-    formOpen: false
+    rowsPerPage: 10,
+    formOpen: false,
+    logsOpen: false,
+    codeBuildProject: ""
   },
   reducers: {
     // standard reducer logic, with auto-generated action types per reducer
@@ -48,6 +60,15 @@ const pipelineSlice = createSlice({
     },
     setOpenForm: (state, action) => {
       state.formOpen = action.payload
+    },
+    setPipeline: (state, action) => {
+      state.selectedPipeline = action.payload
+    },
+    setLogOpenForm: (state, action) => {
+      state.logsOpen = action.payload
+    },
+    setCodeBuildProject: (state, action) => {
+      state.codeBuildProject = action.payload
     }
   },
   extraReducers: {
@@ -63,10 +84,29 @@ const pipelineSlice = createSlice({
       state.loading = "idle";
       state.error = action.error.message;
     },
+
+    [getLogs.fulfilled]: (state, action) => {
+      state.loading = "idle";
+      state.error = "";
+      var logs = ""
+      action.payload.forEach(l => {
+        var lr = l.replace(/\r(?!\n)/g, "\n");
+        logs = logs + lr;
+      })
+      state.logs = logs;
+    },
+    [getLogs.pending]: state => {
+      state.loading = "yes";
+      state.logs = [];
+    },
+    [getLogs.rejected]: (state, action) => {
+      state.loading = "idle";
+      state.error = action.error.message;
+    },
   }
 })
 
-export const { setOrder, setOrderBy, setSelected, setPage, setRowsPerPage, setOpenForm } = pipelineSlice.actions;
+export const { setOrder, setOrderBy, setSelected, setPage, setRowsPerPage, setOpenForm, setPipeline, setLogOpenForm, setCodeBuildProject} = pipelineSlice.actions;
 
 export const selectPipelines = state => state.pipeline.pipelines;
 export const selectOrder = state => state.pipeline.order;
@@ -75,5 +115,10 @@ export const selectSelected = state => state.pipeline.selected;
 export const selectPage = state => state.pipeline.page;
 export const selectRowsPerPage = state => state.pipeline.rowsPerPage;
 export const selectOpenForm = state => state.pipeline.formOpen;
+export const selectSelectedPipeline = state => state.pipeline.selectedPipeline;
+export const selectLogFormOpen = state => state.pipeline.logsOpen;
+export const selectCodeBuildProject = state => state.pipeline.codeBuildProject;
+export const selectLogs = state => state.pipeline.logs;
+export const selectLoading = state => state.pipeline.loading;
 
 export default pipelineSlice.reducer;

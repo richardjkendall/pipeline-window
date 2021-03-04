@@ -2,10 +2,50 @@ import logging
 from os import pipe
 import boto3
 import json
+import datetime
+import pytz
 
 logger = logging.getLogger(__name__)
 
 cp = boto3.client("codepipeline")
+
+EPOCH = datetime.datetime(1900, 1, 1, 0, 0, 0, tzinfo=pytz.UTC)
+
+def summarise_actions(action_states):
+  """
+  Summarise the actions
+  """
+  actions = []
+  for action in action_states:
+    name = action["actionName"]
+    revision_id = ""
+    summary = ""
+    status = ""
+    external_exec_id = ""
+    external_exec_url = ""
+    entity_url = ""
+    latest_status_change = EPOCH
+    if "currentRevision" in action:
+      revision_id = action["currentRevision"].get("revisionId", "")
+    entity_url = action.get("entityUrl", "")
+    if "latestExecution" in action:
+      le = action["latestExecution"]
+      status = le.get("status", "")
+      summary = le.get("summary", "")
+      external_exec_id = le.get("externalExecutionId", "")
+      external_exec_url = le.get("externalExecutionUrl", "")
+      latest_status_change = le.get("lastStatusChange", EPOCH)
+    actions.append({
+      "name": name,
+      "revision_id": revision_id,
+      "summary": summary,
+      "status": status,
+      "external_exec_id": external_exec_id,
+      "external_exec_url": external_exec_url,
+      "entity_url": entity_url,
+      "latest_status_change": latest_status_change
+    })
+  return actions
 
 def collapse_stages(state):
   """
@@ -14,11 +54,14 @@ def collapse_stages(state):
   state_counts = {}
   stages = []
   overall_state = ""
+  latest_date = EPOCH
+  latest_id = ""
   if "stageStates" in state:
     for stage_state in state["stageStates"]:
       name = stage_state["stageName"]
       exec_id = "n/a"
       exec_state = "n/a"
+      actions = []
       if "latestExecution" in stage_state:
         exec_id = stage_state["latestExecution"]["pipelineExecutionId"]
         exec_state = stage_state["latestExecution"]["status"]
@@ -30,10 +73,17 @@ def collapse_stages(state):
           state_counts.update({
             exec_state: 1
           })
+      if "actionStates" in stage_state:
+        actions = summarise_actions(stage_state["actionStates"])
+        for action in actions:
+          if action["latest_status_change"] > latest_date:
+            latest_date = action["latest_status_change"]
+            latest_id = exec_id
       stages.append({
         "name": name,
         "pipeline_id": exec_id,
-        "status": exec_state
+        "status": exec_state,
+        "actions": actions
       })
     if "Failed" in state_counts:
       overall_state = "Failed"
@@ -48,6 +98,8 @@ def collapse_stages(state):
   return {
     "overall_state": overall_state,
     "stages": stages,
+    "latest_execution": latest_date,
+    "latest_id": latest_id
   }
 
 def get_pipeline_state(name):
@@ -103,7 +155,9 @@ def get_pipelines_with_status(filters = None):
     ptr = {
       "name": pipeline,
       "state": state["overall_state"],
-      "stages": state["stages"]
+      "stages": state["stages"],
+      "latest_run": state["latest_execution"],
+      "latest_run_id": state["latest_id"]
     }
     pipelines_to_return.append(ptr)
   return pipelines_to_return

@@ -22,8 +22,8 @@ import {
   selectSelectedPipeline,
   setLogOpenForm,
   setCodeBuildProject,
-  selectLogFormOpen,
-  selectCodeBuildProject,
+  //selectLogFormOpen,
+  //selectCodeBuildProject,
   getLogs
 } from './pipelineSlice';
 
@@ -34,7 +34,7 @@ import { useSelector, useDispatch } from 'react-redux';
 function StageCard(props) {
   const dispatch = useDispatch();
 
-  const { stage, index, logs } = props;
+  const { stage, index } = props;
 
   const useStyles = makeStyles({
     root: {
@@ -92,10 +92,10 @@ function StageCard(props) {
 }
 
 export default function DetailForm(props) {
-  const dispatch = useDispatch();
+  //const dispatch = useDispatch();
 
   const pipeline = useSelector(selectSelectedPipeline);
-  const logOpen = useSelector(selectLogFormOpen);
+  //const logOpen = useSelector(selectLogFormOpen);
 
   const useStyles = makeStyles({
     root: {

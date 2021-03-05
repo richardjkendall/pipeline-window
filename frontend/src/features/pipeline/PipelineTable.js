@@ -84,7 +84,7 @@ const headCells = [
 ];
 
 function EnhancedTableHead(props) {
-  const { classes, order, orderBy, numSelected, rowCount, onRequestSort } = props;
+  const { classes, order, orderBy, onRequestSort } = props;
   const createSortHandler = (property) => (event) => {
     onRequestSort(event, property);
   };
@@ -227,7 +227,7 @@ export default function PipelineTable() {
   const formOpen = useSelector(selectOpenForm);
   const nav = useSelector(selectNav);
 
-  const [loadPage, setLoadPage] = useState(0);
+  const [loadPage] = useState(0);
 
   useEffect(() => {
     dispatch(fetchAll())
@@ -348,9 +348,9 @@ export default function PipelineTable() {
                       </TableCell>
                       <TableCell align="left">{row.stages.length}</TableCell>
                       <TableCell align="left">
-                        {row.state == "Failed" && <ErrorOutlineIcon style={{ color: red[500] }} /> }
-                        {row.state == "InProgress" && <PlayArrowIcon style={{ color: blue[500] }} />}
-                        {row.state == "Succeeded" && <CheckCircleOutlineIcon style={{ color: green[500] }} />}
+                        {row.state === "Failed" && <ErrorOutlineIcon style={{ color: red[500] }} /> }
+                        {row.state === "InProgress" && <PlayArrowIcon style={{ color: blue[500] }} />}
+                        {row.state === "Succeeded" && <CheckCircleOutlineIcon style={{ color: green[500] }} />}
                       </TableCell>
                       <TableCell align="left">{moment.utc(row.latest_run).fromNow()}</TableCell>
                       <TableCell align="left">{getTrigger(row.stages)}</TableCell>

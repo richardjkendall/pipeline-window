@@ -61,10 +61,19 @@ def get_pipelines(username, groups):
   if MODE == "EXP" and len(groups) == 0:
     return success_json_response([])
   else:
-    pipes = get_pipelines_with_status(groups)
-    return success_json_response(
-      pipes
-    )
+    if MODE == "EXP" and len(groups) == 1:
+      if groups[0] == "":
+        return success_json_response([])
+      else:
+        pipes = get_pipelines_with_status(groups)
+        return success_json_response(
+          pipes
+        )
+    else:
+      pipes = get_pipelines_with_status(groups)
+      return success_json_response(
+        pipes
+      )
 
 @app.route("/api/codebuild/<string:id>")
 def get_build_logs(id):

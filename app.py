@@ -20,6 +20,8 @@ CORS(app)
 logging.basicConfig(level=logging.INFO, format='%(asctime)s [%(levelname)s] (%(threadName)-10s) %(message)s')
 logger = logging.getLogger(__name__)
 
+MODE = os.getenv("AUTHZ_MODE", "EXP")
+
 @app.route("/")
 def gotoindex():
   # headers on request
@@ -56,10 +58,13 @@ def root(username, groups):
 @app.route("/api/pipeline")
 @secured
 def get_pipelines(username, groups):
-  pipes = get_pipelines_with_status(groups)
-  return success_json_response(
-    pipes
-  )
+  if MODE == "EXP" and len(groups) == 0:
+    return success_json_response([])
+  else:
+    pipes = get_pipelines_with_status(groups)
+    return success_json_response(
+      pipes
+    )
 
 @app.route("/api/codebuild/<string:id>")
 def get_build_logs(id):

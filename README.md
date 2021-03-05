@@ -25,6 +25,7 @@ The application expects to be deployed behind a authenticating reverse proxy.  I
 The application expects the following HTTP headers to be set by the reverse proxy:
 
 X-Remote-User: the username of the user who has authenticated with the reverse proxy
+
 X-Remote-User-Groups: a comma separated list of groups the user belongs to e.g. group1,group2,group3
 
 The groups are used to filter the pipelines the user can see.  Each pipeline name is checked to see if it contains a string of characters which is the same as one of the group names.  If it does then the pipeline is shown to the user, otherwise the pipeline is not visible.

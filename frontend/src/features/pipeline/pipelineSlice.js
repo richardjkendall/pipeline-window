@@ -4,7 +4,7 @@ import axios from "axios";
 export const fetchAll = createAsyncThunk(
   'pipeline/fetchAll',
   async (thunkAPI) => {
-    const response = await axios.get("http://localhost:5000/api/pipeline");
+    const response = await axios.get("/api/pipeline");
     console.log("got following response", response.data);
     var pipelines = [];
     response.data.forEach(element => {
@@ -19,7 +19,7 @@ export const fetchAll = createAsyncThunk(
 export const getLogs = createAsyncThunk(
   'pipeline/getLogs',
   async (item, thunkAPI) => {
-    const response = await axios.get("http://localhost:5000/api/codebuild/" + item);
+    const response = await axios.get("/api/codebuild/" + item);
     return response.data.events;
   }
 )

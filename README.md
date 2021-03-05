@@ -37,3 +37,14 @@ These headers are set by the oidc-rproxy component.
 ## Deploying
 
 To make this easy, I've pre-created a Terraform module which can deploy the user manager behind an OIDC authenticating reverse proxy, you can see it here: https://github.com/richardjkendall/tf-modules/tree/master/modules/pipeline-viewer
+
+## IAM Permissions
+
+The app needs the following IAM permissions to read logs, list pipelines and get builds:
+
+```
+"codepipeline:ListPipelines",
+"codepipeline:GetPipelineState",
+"codebuild:BatchGetBuilds",
+"logs:GetLogEvents"
+```

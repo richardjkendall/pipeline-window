@@ -1,10 +1,18 @@
 import { createAsyncThunk, createSlice } from '@reduxjs/toolkit';
 import axios from "axios";
 
+var API_BASE = function() {
+  if(window.location.hostname === "localhost") {
+    return "http://localhost:5000/";
+  } else {
+    return "/"
+  }
+}
+
 export const fetchAll = createAsyncThunk(
   'pipeline/fetchAll',
   async (thunkAPI) => {
-    const response = await axios.get("/api/pipeline");
+    const response = await axios.get(API_BASE() + "api/pipeline");
     console.log("got following response", response.data);
     var pipelines = [];
     response.data.forEach(element => {
@@ -19,7 +27,7 @@ export const fetchAll = createAsyncThunk(
 export const getLogs = createAsyncThunk(
   'pipeline/getLogs',
   async (item, thunkAPI) => {
-    const response = await axios.get("/api/codebuild/" + item);
+    const response = await axios.get(API_BASE() + "api/codebuild/" + item);
     return response.data.events;
   }
 )
@@ -28,7 +36,7 @@ const pipelineSlice = createSlice({
   name: 'pipeline',
   initialState: { 
     pipelines: [], 
-    logs: [],
+    logs: "",
     selectedPipeline: {},
     loading: 'idle', 
     error: '',

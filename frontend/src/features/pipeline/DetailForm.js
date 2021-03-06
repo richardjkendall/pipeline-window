@@ -118,7 +118,7 @@ export default function DetailForm(props) {
           <div className={classes.root}>
             {props.open && pipeline.stages.map((stage, index) => {
               return (
-                <StageCard stage={stage} index={index} />
+                <StageCard key={`stage_${index}`} stage={stage} index={index} />
               )
             })}
           </div>

@@ -7,6 +7,8 @@ import DialogContent from '@material-ui/core/DialogContent';
 import DialogTitle from '@material-ui/core/DialogTitle';
 import CircularProgress from '@material-ui/core/CircularProgress';
 
+import styled from 'styled-components';
+
 import {
   selectLogFormOpen,
   setLogOpenForm,
@@ -35,6 +37,46 @@ const COLOURS = {
   97: "rgb(229,229,229)"   // white
 }
 
+const LogView = styled.div`
+  white-space: pre;
+  font-family: 'monospace';
+
+  font-family: monospace;
+  background-color: #fff;
+  margin: 4em auto;
+  padding: 0.5em;
+  /*line-height: 0;*/
+  counter-reset: line;
+
+  div {
+    display: inline;
+
+    &:before {
+      counter-increment: line;
+      content: counter(line);
+      display: inline-block;
+      border-right: 1px solid #ddd;
+      padding: 0 .5em;
+      margin-right: .5em;
+      color: #888
+    }
+  }
+
+  span {
+    /*line-height: 1.5rem;*/
+    
+    /*&:before {
+      counter-increment: line;
+      content: counter(line);
+      display: inline-block;
+      border-right: 1px solid #ddd;
+      padding: 0 .5em;
+      margin-right: .5em;
+      color: #888
+    }*/
+  }
+`;
+
 export default function LogForm(props) {
   const dispatch = useDispatch();
 
@@ -44,6 +86,23 @@ export default function LogForm(props) {
 
   const close = (event) => {
     dispatch(setLogOpenForm(false));
+  }
+
+  const splitLinesToSpans = function(text, style, blockNum) {
+    var spans = [];
+    const lines = text.split("\n");
+    var lineNum = 0;
+    if (lines.length == 1) {
+      spans.push(<span key={`block_${blockNum}_line_${lineNum}`}style={style}>{lines[0]}</span>);
+    } else {
+      for(const line of lines) {
+        //console.log(`line ${line}`);
+        //console.log(line.slice(-1) === "\n" ? "line ends with \n" : "no line ending");
+        spans.push(<span key={`block_${blockNum}_line_${lineNum}`} style={style}>{line}<br/></span>);
+        lineNum++;
+      }
+    }
+    return spans;
   }
 
   const colourText = function(text) {
@@ -58,8 +117,10 @@ export default function LogForm(props) {
       var slice = text.substring(start, match.index);
       if (style === "") {
         newText.push(<span key={`block_${blockNum}`}>{slice}</span>);
+        //newText.push(splitLinesToSpans(slice, {}, blockNum));
       } else {
         newText.push(<span key={`block_${blockNum}`} style={{color: style}}>{slice}</span>)
+        //newText.push(splitLinesToSpans(slice, {color: style}, blockNum));
       }
       if (match[1] === "0") {
         style = "";
@@ -73,12 +134,68 @@ export default function LogForm(props) {
       var lastSlice = text.substring(start, text.length);
       if (style === "") {
         newText.push(<span key="last_block">{lastSlice}</span>);
+        //newText.push(splitLinesToSpans(lastSlice, {}, blockNum));
       } else {
         newText.push(<span key="last_block" style={{color: style}}>{lastSlice}</span>)
+        //newText.push(splitLinesToSpans(lastSlice, {color: style}, blockNum));
       }
     }
-    console.log(text);
+    //console.log(text);
     return newText;
+  }
+
+  const colourText2 = function(text) {
+    const controlRe = /\033\[(\d+)m/gm;
+    const lines = text.split("\n");
+    var divs = [];
+    var style = "";
+    var lineNumber = 0;
+    for(const line of lines) {
+      console.log(`line ${line}`, controlRe.test(line));
+      // need to find if there are control statements in the line
+      if(!controlRe.test(line)) {
+        console.log("no control stmt in line");
+        // there are not any control statements
+        if(style === "") {
+          divs.push(<div key={`line_${lineNumber}`}><span>{line}</span><br/></div>);
+        } else {
+          divs.push(<div key={`line_${lineNumber}`}><span style={{color: style}}>{line}</span><br/></div>);
+        }
+      } else {
+        const matches = line.matchAll(controlRe);
+        var start = 0;
+        var spans = [];
+        var blockNumber = 0;
+        // there are control statements
+        for(const match of matches) {
+          var slice = line.substring(start, match.index);
+          if(style === "") {
+            spans.push(<span key={`line_${lineNumber}_block_${blockNumber}`}>{slice}</span>);
+          } else {
+            spans.push(<span key={`line_${lineNumber}_block_${blockNumber}`} style={{color: style}}>{slice}</span>);
+          }
+          if (match[1] === "0") {
+            style = "";
+          } else {
+            style = COLOURS[match[1]];
+          }
+          start = match.index + match[0].length;
+          blockNumber++;
+        }
+        // add the last span if needed
+        if(start < line.length) {
+          var lastSlice = line.substring(start, text.length);
+          if(style === "") {
+            spans.push(<span key={`line_${lineNumber}_block_${blockNumber}`}>{lastSlice}</span>);
+          } else {
+            spans.push(<span key={`line_${lineNumber}_block_${blockNumber}`} style={{color: style}}>{lastSlice}</span>);
+          }
+        }
+        divs.push(<div key={`line_${lineNumber}`}>{spans}<br/></div>);
+      }
+      lineNumber++;
+    }
+    return divs;
   }
 
   return (
@@ -87,9 +204,9 @@ export default function LogForm(props) {
         <DialogTitle id="form-dialog-title">Logs</DialogTitle>
         <DialogContent>
           
-          {loading === "yes" ? <CircularProgress/> : <div style={{whiteSpace: "pre", fontFamily: "monospace"}}>
-            {colourText(logs)}
-          </div>}
+          {loading === "yes" ? <CircularProgress/> : <LogView>
+            {colourText2(logs)}
+          </LogView>}
           
         </DialogContent>
         <DialogActions>

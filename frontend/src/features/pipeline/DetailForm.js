@@ -77,15 +77,15 @@ function StageCard(props) {
           {stage.name}
         </Typography>
         <Typography variant="body2" component="p">
-          {stage.name === "Source" && stage.actions[0].summary}
-          {(stage.name === "Build" || stage.name === "Deploy") && stage.actions[0].external_exec_id}
+          {stage.actions[0].summary ? stage.actions[0].summary : stage.actions[0].external_exec_id}
+          
         </Typography>
         {stage.status === "Succeeded" && <CheckCircleOutlineIcon className={classes.pos} style={{ color: green[500] }} />}
         {stage.status === "Failed" && <ErrorOutlineIcon className={classes.pos} style={{ color: red[500] }} />}
         {stage.status === "InProgress" && <PlayArrowIcon className={classes.pos} style={{ color: blue[500] }} />}
       </CardContent>
       <CardActions>
-        {stage.name === "Build" && isCodeBuild(stage.actions[0].external_exec_url) && <Button onClick={openLogs} size="small">Get Logs</Button>}
+        {isCodeBuild(stage.actions[0].external_exec_url) && <Button onClick={openLogs} size="small">Get Logs</Button>}
       </CardActions>
     </Card>
   )

@@ -7,6 +7,8 @@ import DialogContent from '@material-ui/core/DialogContent';
 import DialogTitle from '@material-ui/core/DialogTitle';
 import CircularProgress from '@material-ui/core/CircularProgress';
 
+import styled from 'styled-components';
+
 import {
   selectLogFormOpen,
   setLogOpenForm,
@@ -35,6 +37,33 @@ const COLOURS = {
   97: "rgb(229,229,229)"   // white
 }
 
+const LogView = styled.div`
+  white-space: pre;
+  font-family: 'monospace';
+
+  font-family: monospace;
+  background-color: #fff;
+  margin: 4em auto;
+  padding: 0.5em;
+  counter-reset: line;
+
+  div {
+    display: inline;
+
+    &:before {
+      counter-increment: line;
+      content: counter(line);
+      display: inline-block;
+      border-right: 1px solid #ddd;
+      padding: 0 .5em;
+      margin-right: .5em;
+      color: #888;
+      width: 40px;
+      text-align: right;
+    }
+  }
+`;
+
 export default function LogForm(props) {
   const dispatch = useDispatch();
 
@@ -46,39 +75,47 @@ export default function LogForm(props) {
     dispatch(setLogOpenForm(false));
   }
 
-  const colourText = function(text) {
-    const re = /\033\[(\d+)m/gm;
-    const matches = text.matchAll(re);
-    var start = 0;
+  const colourText2 = function(text) {
+    const controlRe = /\033\[(\d+)m/g;
+    const lines = text.split("\n");
+    var divs = [];
     var style = "";
-    var newText = [];
-    var blockNum = 0;
-    for (const match of matches) {
-      //console.log(`Match ${match}, - index ${match.index}`);
-      var slice = text.substring(start, match.index);
-      if (style === "") {
-        newText.push(<span key={`block_${blockNum}`}>{slice}</span>);
-      } else {
-        newText.push(<span key={`block_${blockNum}`} style={{color: style}}>{slice}</span>)
+    var lineNumber = 0;
+    for(const line of lines) {
+      const matches = line.matchAll(controlRe);
+      var start = 0;
+      var spans = [];
+      var blockNumber = 0;
+      // there are control statements
+      for(const match of matches) {
+        var slice = line.substring(start, match.index);
+        //console.log(`start ${start} match index ${match.index}, number: ${match[1]} slice: ${slice}`)
+        if(style === "") {
+          spans.push(<span key={`line_${lineNumber}_block_${blockNumber}`}>{slice}</span>);
+        } else {
+          spans.push(<span key={`line_${lineNumber}_block_${blockNumber}`} style={{color: style}}>{slice}</span>);
+        }
+        if (match[1] === "0") {
+          style = "";
+        } else {
+          style = COLOURS[match[1]];
+        }
+        start = match.index + match[0].length;
+        blockNumber++;
       }
-      if (match[1] === "0") {
-        style = "";
-      } else {
-        style = COLOURS[match[1]];
+      // add the last span if needed
+      if(start < line.length) {
+        var lastSlice = line.substring(start, text.length);
+        if(style === "") {
+          spans.push(<span key={`line_${lineNumber}_block_${blockNumber}`}>{lastSlice}</span>);
+        } else {
+          spans.push(<span key={`line_${lineNumber}_block_${blockNumber}`} style={{color: style}}>{lastSlice}</span>);
+        }
       }
-      start = match.index + match[0].length;
-      blockNum++;
+      divs.push(<div key={`line_${lineNumber}`}>{spans}<br/></div>);
+      lineNumber++;
     }
-    if (start < text.length) {
-      var lastSlice = text.substring(start, text.length);
-      if (style === "") {
-        newText.push(<span key="last_block">{lastSlice}</span>);
-      } else {
-        newText.push(<span key="last_block" style={{color: style}}>{lastSlice}</span>)
-      }
-    }
-    console.log(text);
-    return newText;
+    return divs;
   }
 
   return (
@@ -87,9 +124,9 @@ export default function LogForm(props) {
         <DialogTitle id="form-dialog-title">Logs</DialogTitle>
         <DialogContent>
           
-          {loading === "yes" ? <CircularProgress/> : <div style={{whiteSpace: "pre", fontFamily: "monospace"}}>
-            {colourText(logs)}
-          </div>}
+          {loading === "yes" ? <CircularProgress/> : <LogView>
+            {colourText2(logs)}
+          </LogView>}
           
         </DialogContent>
         <DialogActions>

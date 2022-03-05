@@ -1,5 +1,6 @@
 import { createAsyncThunk, createSlice } from '@reduxjs/toolkit';
 import axios from "axios";
+import moment from "moment";
 
 var API_BASE = function() {
   if(window.location.hostname === "localhost") {
@@ -17,7 +18,8 @@ export const fetchAll = createAsyncThunk(
     var pipelines = [];
     response.data.forEach(element => {
       var pipeline = element;
-      console.log("working on element", element);
+      pipeline.latest_run = moment.utc(pipeline.latest_run).toISOString();
+      //console.log("working on element", element);
       pipelines.push(pipeline);
     });
     return pipelines;

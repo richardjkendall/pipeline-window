@@ -47,7 +47,8 @@ const pipelineSlice = createSlice({
     rowsPerPage: 10,
     formOpen: false,
     logsOpen: false,
-    codeBuildProject: ""
+    codeBuildProject: "",
+    pipelineSearchTerm: ""
   },
   reducers: {
     // standard reducer logic, with auto-generated action types per reducer
@@ -77,7 +78,10 @@ const pipelineSlice = createSlice({
     },
     setCodeBuildProject: (state, action) => {
       state.codeBuildProject = action.payload
-    }
+    },
+    setPipelineSearchTerm: (state, action) => {
+      state.pipelineSearchTerm = action.payload
+    },
   },
   extraReducers: {
     [fetchAll.fulfilled]: (state, action) => {
@@ -114,7 +118,7 @@ const pipelineSlice = createSlice({
   }
 })
 
-export const { setOrder, setOrderBy, setSelected, setPage, setRowsPerPage, setOpenForm, setPipeline, setLogOpenForm, setCodeBuildProject} = pipelineSlice.actions;
+export const { setOrder, setOrderBy, setSelected, setPage, setRowsPerPage, setOpenForm, setPipeline, setLogOpenForm, setCodeBuildProject, setPipelineSearchTerm} = pipelineSlice.actions;
 
 export const selectPipelines = state => state.pipeline.pipelines;
 export const selectOrder = state => state.pipeline.order;
@@ -128,5 +132,6 @@ export const selectLogFormOpen = state => state.pipeline.logsOpen;
 export const selectCodeBuildProject = state => state.pipeline.codeBuildProject;
 export const selectLogs = state => state.pipeline.logs;
 export const selectLoading = state => state.pipeline.loading;
+export const selectPipelineSearchTerm = state => state.pipeline.pipelineSearchTerm;
 
 export default pipelineSlice.reducer;

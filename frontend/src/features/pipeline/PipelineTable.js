@@ -377,7 +377,6 @@ export default function PipelineTable() {
                         {row.state === "InProgress" && <PlayArrowIcon style={{ color: blue[500] }} />}
                         {row.state === "Succeeded" && <CheckCircleOutlineIcon style={{ color: green[500] }} />}
                       </TableCell>
-                      {/* moment.utc(row.latest_run).fromNow() */}
                       <TableCell align="left">{moment.utc(row.latest_run).fromNow()}</TableCell>
                       <TableCell align="left">{getTrigger(row.stages)}</TableCell>
                     </TableRow>

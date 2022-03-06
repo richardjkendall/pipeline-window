@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useRef } from 'react';
 
 import Button from '@material-ui/core/Button';
 import Dialog from '@material-ui/core/Dialog';
@@ -71,11 +71,21 @@ export default function LogForm(props) {
   const logs = useSelector(selectLogs);
   const loading = useSelector(selectLoading);
 
+  const contentArea = useRef();
+
+  useEffect(() => {
+    if(loading === "idle" && logs.length > 0) {
+      console.log("scroll down fired", logs.length);
+      const logV = contentArea.current;
+      logV.scrollTop = logV.scrollHeight;
+    }
+  }, [loading]);
+
   const close = (event) => {
     dispatch(setLogOpenForm(false));
   }
 
-  const colourText2 = function(text) {
+  const colourText = function(text) {
     const controlRe = /\033\[(\d+)m/g;
     const lines = text.split("\n");
     var divs = [];
@@ -122,14 +132,17 @@ export default function LogForm(props) {
     <div>
       <Dialog fullWidth={true} maxWidth="xl" open={open} onClose={() => {}} aria-labelledby="form-dialog-title">
         <DialogTitle id="form-dialog-title">Logs</DialogTitle>
-        <DialogContent>
-          
+        <DialogContent ref={contentArea}>
+
           {loading === "yes" ? <CircularProgress/> : <LogView>
-            {colourText2(logs)}
+            {colourText(logs)}
           </LogView>}
           
         </DialogContent>
         <DialogActions>
+          <Button onClick={props.refresh} disabled={!loading} color="secondary">
+            Refresh Logs
+          </Button>
           <Button onClick={close} color="primary">
             Close
           </Button>

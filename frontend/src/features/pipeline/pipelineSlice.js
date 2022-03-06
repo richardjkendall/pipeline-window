@@ -40,10 +40,11 @@ const pipelineSlice = createSlice({
     pipelines: [], 
     logs: "",
     selectedPipeline: {},
+    externalExecId: "",
     loading: 'idle', 
     error: '',
-    order: 'asc',
-    orderBy: 'name',
+    order: 'desc',
+    orderBy: 'latest_run',
     selected: [],
     page: 0,
     rowsPerPage: 10,
@@ -84,6 +85,9 @@ const pipelineSlice = createSlice({
     setPipelineSearchTerm: (state, action) => {
       state.pipelineSearchTerm = action.payload
     },
+    setExternalExecId: (state, action) => {
+      state.externalExecId = action.payload
+    },
   },
   extraReducers: {
     [fetchAll.fulfilled]: (state, action) => {
@@ -120,7 +124,7 @@ const pipelineSlice = createSlice({
   }
 })
 
-export const { setOrder, setOrderBy, setSelected, setPage, setRowsPerPage, setOpenForm, setPipeline, setLogOpenForm, setCodeBuildProject, setPipelineSearchTerm} = pipelineSlice.actions;
+export const { setOrder, setOrderBy, setSelected, setPage, setRowsPerPage, setOpenForm, setPipeline, setLogOpenForm, setCodeBuildProject, setPipelineSearchTerm, setExternalExecId} = pipelineSlice.actions;
 
 export const selectPipelines = state => state.pipeline.pipelines;
 export const selectOrder = state => state.pipeline.order;
@@ -135,5 +139,6 @@ export const selectCodeBuildProject = state => state.pipeline.codeBuildProject;
 export const selectLogs = state => state.pipeline.logs;
 export const selectLoading = state => state.pipeline.loading;
 export const selectPipelineSearchTerm = state => state.pipeline.pipelineSearchTerm;
+export const selectExternalExecId = state => state.pipeline.externalExecId;
 
 export default pipelineSlice.reducer;

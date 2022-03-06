@@ -78,7 +78,7 @@ export default function LogForm(props) {
       const logV = contentArea.current;
       logV.scrollTop = logV.scrollHeight;
     }
-  }, [loading]);
+  }, [loading, logs.length]);
 
   const close = (event) => {
     dispatch(setLogOpenForm(false));

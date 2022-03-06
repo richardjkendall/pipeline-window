@@ -22,9 +22,9 @@ import {
   selectSelectedPipeline,
   setLogOpenForm,
   setCodeBuildProject,
-  //selectLogFormOpen,
-  //selectCodeBuildProject,
-  getLogs
+  setExternalExecId,
+  getLogs,
+  selectExternalExecId
 } from './pipelineSlice';
 
 import LogForm from './LogForm';
@@ -64,6 +64,7 @@ function StageCard(props) {
   const openLogs = (event) => {
     dispatch(setCodeBuildProject(stage.actions[0].external_exec_id));
     dispatch(setLogOpenForm(true));
+    dispatch(setExternalExecId(stage.actions[0].external_exec_id));
     dispatch(getLogs(stage.actions[0].external_exec_id));
   }
 
@@ -92,10 +93,10 @@ function StageCard(props) {
 }
 
 export default function DetailForm(props) {
-  //const dispatch = useDispatch();
+  const dispatch = useDispatch();
 
   const pipeline = useSelector(selectSelectedPipeline);
-  //const logOpen = useSelector(selectLogFormOpen);
+  const externalExecId = useSelector(selectExternalExecId);
 
   const useStyles = makeStyles({
     root: {
@@ -105,6 +106,10 @@ export default function DetailForm(props) {
   });
 
   const classes = useStyles();
+
+  const refreshLogs = () => {
+    dispatch(getLogs(externalExecId));
+  }
 
   return (
     <div>
@@ -130,7 +135,7 @@ export default function DetailForm(props) {
           </Button>
         </DialogActions>
       </Dialog>
-      <LogForm />
+      <LogForm refresh={refreshLogs}/>
     </div>
   );
 }

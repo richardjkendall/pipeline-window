@@ -1,5 +1,6 @@
 import { createAsyncThunk, createSlice } from '@reduxjs/toolkit';
 import axios from "axios";
+import moment from "moment";
 
 var API_BASE = function() {
   if(window.location.hostname === "localhost") {
@@ -17,7 +18,8 @@ export const fetchAll = createAsyncThunk(
     var pipelines = [];
     response.data.forEach(element => {
       var pipeline = element;
-      console.log("working on element", element);
+      pipeline.latest_run = moment.utc(pipeline.latest_run).toISOString();
+      //console.log("working on element", element);
       pipelines.push(pipeline);
     });
     return pipelines;
@@ -38,16 +40,18 @@ const pipelineSlice = createSlice({
     pipelines: [], 
     logs: "",
     selectedPipeline: {},
+    externalExecId: "",
     loading: 'idle', 
     error: '',
-    order: 'asc',
-    orderBy: 'name',
+    order: 'desc',
+    orderBy: 'latest_run',
     selected: [],
     page: 0,
     rowsPerPage: 10,
     formOpen: false,
     logsOpen: false,
-    codeBuildProject: ""
+    codeBuildProject: "",
+    pipelineSearchTerm: ""
   },
   reducers: {
     // standard reducer logic, with auto-generated action types per reducer
@@ -77,7 +81,13 @@ const pipelineSlice = createSlice({
     },
     setCodeBuildProject: (state, action) => {
       state.codeBuildProject = action.payload
-    }
+    },
+    setPipelineSearchTerm: (state, action) => {
+      state.pipelineSearchTerm = action.payload
+    },
+    setExternalExecId: (state, action) => {
+      state.externalExecId = action.payload
+    },
   },
   extraReducers: {
     [fetchAll.fulfilled]: (state, action) => {
@@ -114,7 +124,7 @@ const pipelineSlice = createSlice({
   }
 })
 
-export const { setOrder, setOrderBy, setSelected, setPage, setRowsPerPage, setOpenForm, setPipeline, setLogOpenForm, setCodeBuildProject} = pipelineSlice.actions;
+export const { setOrder, setOrderBy, setSelected, setPage, setRowsPerPage, setOpenForm, setPipeline, setLogOpenForm, setCodeBuildProject, setPipelineSearchTerm, setExternalExecId} = pipelineSlice.actions;
 
 export const selectPipelines = state => state.pipeline.pipelines;
 export const selectOrder = state => state.pipeline.order;
@@ -128,5 +138,7 @@ export const selectLogFormOpen = state => state.pipeline.logsOpen;
 export const selectCodeBuildProject = state => state.pipeline.codeBuildProject;
 export const selectLogs = state => state.pipeline.logs;
 export const selectLoading = state => state.pipeline.loading;
+export const selectPipelineSearchTerm = state => state.pipeline.pipelineSearchTerm;
+export const selectExternalExecId = state => state.pipeline.externalExecId;
 
 export default pipelineSlice.reducer;

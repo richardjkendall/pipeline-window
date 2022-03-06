@@ -21,12 +21,15 @@ import {
   selectPage,
   selectRowsPerPage,
   selectOpenForm,
+  selectPipelineSearchTerm,
+  setPipelineSearchTerm,
 } from './pipelineSlice';
 
 import { selectNav } from '../navigation/navigationSlice';
 
 import { lighten, makeStyles } from '@material-ui/core/styles';
 
+import { TextField } from '@material-ui/core';
 import Table from '@material-ui/core/Table';
 import TableBody from '@material-ui/core/TableBody';
 import TableCell from '@material-ui/core/TableCell';
@@ -180,7 +183,15 @@ const EnhancedTableToolbar = (props) => {
           </IconButton>
         </Tooltip>
       ) : (
-        <div/>
+        <div>
+          <TextField 
+            label="Search..." 
+            value={props.pipelineSearchTerm}
+            onChange={props.changeSearchTerm}
+            variant="standard" 
+            style={{width: "200px"}} 
+          />
+        </div>
       )}
     </Toolbar>
   );
@@ -226,6 +237,7 @@ export default function PipelineTable() {
   const rowsPerPage = useSelector(selectRowsPerPage);
   const formOpen = useSelector(selectOpenForm);
   const nav = useSelector(selectNav);
+  const pipelineSearchTerm = useSelector(selectPipelineSearchTerm);
 
   const [loadPage] = useState(0);
 
@@ -237,6 +249,10 @@ export default function PipelineTable() {
     const isAsc = orderBy === property && order === 'asc';
     dispatch(setOrder(isAsc ? 'desc' : 'asc'));
     dispatch(setOrderBy(property));
+  };
+
+  const handlePipelineSearchTermChange = (event) => {
+    dispatch(setPipelineSearchTerm(event.target.value));
   };
 
   const handleClick = (event, name) => {
@@ -263,14 +279,18 @@ export default function PipelineTable() {
   const emptyRows = rowsPerPage - Math.min(rowsPerPage, rows.length - page * rowsPerPage);
 
   const pipeFilter = task => {
+    let searchByTerm = true;
+    if(pipelineSearchTerm !== "") {
+      searchByTerm = task.name.toLowerCase().includes(pipelineSearchTerm.toLowerCase());
+    }
     if(nav === "all") {
-      return true;
+      return true && searchByTerm;
     }
     if(nav === "running") {
-      return task.state === "InProgress";
+      return task.state === "InProgress" && searchByTerm;
     }
     if(nav === "failed") {
-      return task.state === "Failed"
+      return task.state === "Failed" && searchByTerm
     }
     return false;
   }
@@ -303,7 +323,12 @@ export default function PipelineTable() {
     <div className={classes.root}>
       <Paper className={classes.paper}>
         <DetailForm open={formOpen} handleClose={closeDetail} />
-        <EnhancedTableToolbar numSelected={selected.length} onGetInfoClick={openDetail} />
+        <EnhancedTableToolbar 
+          numSelected={selected.length} 
+          pipelineSearchTerm={pipelineSearchTerm}
+          changeSearchTerm={handlePipelineSearchTermChange}
+          onGetInfoClick={openDetail} 
+        />
         <TableContainer>
           <Table
             className={classes.table}

@@ -75,7 +75,6 @@ export default function LogForm(props) {
 
   useEffect(() => {
     if(loading === "idle" && logs.length > 0) {
-      console.log("scroll down fired", logs.length);
       const logV = contentArea.current;
       logV.scrollTop = logV.scrollHeight;
     }
